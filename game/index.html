@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SOLMAR HEAT: Vice Coast</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #1d2a55; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+  #game { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+  #status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .panel { position: absolute; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,.7); pointer-events: none; }
+  #topleft { top: 14px; left: 16px; }
+  #stars { font-size: 30px; letter-spacing: 4px; color: #ffd166; }
+  #cash { font-size: 30px; font-weight: 800; color: #7CFC00; }
+  #cashpop { font-size: 15px; color: #7CFC00; opacity: 0; transition: opacity .3s; }
+  #district { font-size: 15px; color: #ffe9c9; }
+  #clock { font-size: 15px; color: #cfe0ff; }
+  #topright { top: 14px; right: 16px; text-align: right; }
+  #minimap { width: 168px; height: 168px; border: 2px solid rgba(255,255,255,.55); border-radius: 8px; background: rgba(10,16,28,.85); }
+  #botleft { bottom: 16px; left: 16px; }
+  #hpbar-wrap, #armorbar-wrap { width: 210px; height: 12px; background: rgba(0,0,0,.55); border-radius: 6px; overflow: hidden; margin-top: 4px; }
+  #hpbar { height: 100%; width: 100%; background: linear-gradient(90deg,#ff5252,#ff8a65); }
+  #armorbar { height: 100%; width: 100%; background: linear-gradient(90deg,#4fc3f7,#90caf9); }
+  #hptext { font-size: 14px; }
+  #botcenter { bottom: 16px; left: 50%; transform: translateX(-50%); text-align: center; width: 640px; }
+  #objective { font-size: 19px; font-weight: 700; background: rgba(0,0,0,.55); padding: 8px 14px; border-radius: 8px; display: inline-block; }
+  #missionline { font-size: 15px; color: #ffe9c9; background: rgba(0,0,0,.45); padding: 6px 12px; border-radius: 8px; display: inline-block; margin-top: 6px; }
+  #missionline:empty { display: none; }
+  #botright { bottom: 16px; right: 16px; text-align: right; font-size: 15px; }
+  #weapon { font-size: 18px; font-weight: 700; }
+  #speed { font-size: 26px; font-weight: 800; color: #ffd166; }
+  #flash { position: fixed; inset: 0; background: radial-gradient(ellipse at center, transparent 55%, rgba(255,0,0,.8) 100%); opacity: 0; pointer-events: none; }
+  .screen { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; flex-direction: column; background: rgba(10,12,24,.72); color: #fff; text-align: center; z-index: 5; }
+  .screen h1 { font-size: 64px; margin: 0; letter-spacing: 3px; color: #ffb020; text-shadow: 0 4px 0 #b33a2b, 0 8px 24px rgba(0,0,0,.6); }
+  .screen h2 { font-size: 20px; color: #ffe9c9; margin: 8px 0 20px; font-weight: 400; }
+  .screen p { max-width: 620px; font-size: 16px; line-height: 1.55; color: #dfe6f2; }
+  .screen button { pointer-events: auto; font-size: 18px; font-weight: 700; padding: 12px 26px; margin: 6px; border: 0; border-radius: 10px; background: #ffb020; color: #241300; cursor: pointer; }
+  .screen button:hover { background: #ffc94d; }
+  .screen button.alt { background: #2e3a55; color: #fff; }
+  #howto { display: none; font-size: 15px; background: rgba(0,0,0,.5); padding: 12px 18px; border-radius: 10px; margin-top: 10px; }
+  .keys { font-size: 14px; color: #9fb4d8; margin-top: 14px; }
+</style>
+</head>
+<body>
+<canvas id="game" aria-label="SOLMAR HEAT: Vice Coast — open-world crime game in the fictional beach city of Solmar"></canvas>
+<p id="status" role="status" aria-live="polite"></p>
+<div id="flash"></div>
+<div class="panel" id="topleft">
+  <div id="stars">☆☆☆☆☆</div>
+  <div id="cash">$1,500</div>
+  <div id="cashpop">MISSION PAYOUT BANKED</div>
+  <div id="district">Palm Row</div>
+  <div id="clock">19:42</div>
+</div>
+<div class="panel" id="topright"><canvas id="minimap" width="168" height="168"></canvas></div>
+<div class="panel" id="botleft">
+  <div id="hptext">HP 100</div>
+  <div id="hpbar-wrap"><div id="hpbar"></div></div>
+  <div id="armorbar-wrap"><div id="armorbar"></div></div>
+</div>
+<div class="panel" id="botcenter">
+  <div id="objective">Welcome to Solmar.</div><br>
+  <div id="missionline"></div>
+</div>
+<div class="panel" id="botright">
+  <div id="weapon">P9 Pistol 120</div>
+  <div id="radio">SOLMAR WAVE 88.4 — Synthwave nights</div>
+  <div id="speed">ON FOOT</div>
+</div>
+
+<div class="screen" id="screen-title">
+  <h1>SOLMAR HEAT</h1>
+  <h2>VICE COAST &nbsp;•&nbsp; an open-world crime story in the fictional beach city of Solmar</h2>
+  <p>Ten story missions. A living beach city with traffic, pedestrians, a five-star
+  wanted system, roadblocks, a police helicopter, a crew to hire, a garage to fill,
+  a weapon wheel, three radio stations and saves. Steal a car, climb the ladder,
+  and take the coast.</p>
+  <div>
+    <button id="btn-start">START THE STORY</button>
+    <button id="btn-how" class="alt">HOW TO PLAY</button>
+  </div>
+  <div id="howto">WASD move / drive &nbsp;•&nbsp; E enter or steal a car, start a mission at the gold marker<br>
+  Click shoot &nbsp;•&nbsp; Q cycle weapon &nbsp;•&nbsp; R radio &nbsp;•&nbsp; F save &nbsp;•&nbsp; P pause &nbsp;•&nbsp; drag mouse to look around<br>
+  Shift run &nbsp;•&nbsp; Space handbrake in a car</div>
+  <div class="keys">10 missions • 5 districts • 4 crew • 5 garage cars • 3 radio stations • saves</div>
+</div>
+
+<div class="screen" id="screen-pause">
+  <h1>PAUSED</h1>
+  <p id="pause-note">Solmar waits for no one. Except now.</p>
+  <div>
+    <button id="btn-resume">RESUME</button>
+    <button id="btn-save" class="alt">SAVE GAME</button>
+    <button id="btn-car" class="alt">SWITCH RIDE</button>
+    <button id="btn-crew" class="alt">HIRE CREW ($8,000)</button>
+    <button id="btn-buy" class="alt">BUY NEXT CAR</button>
+    <button id="btn-title" class="alt">QUIT TO TITLE</button>
+  </div>
+</div>
+
+<div class="screen" id="screen-over">
+  <h1>WASTED</h1>
+  <h2>The Solmar PD caught up with you.</h2>
+  <p id="over-stats"></p>
+  <div><button id="btn-continue">BACK ON THE STREET</button></div>
+</div>
+
+<div class="screen" id="screen-complete">
+  <h1>SOLMAR IS YOURS</h1>
+  <p id="complete-stats"></p>
+</div>
+
+<div class="screen" id="screen-garage"><h1>GARAGE</h1></div>
+
+<script src="./vendor/three.min.js"></script>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
